@@ -9,6 +9,7 @@ SERVER_PORT = 9999
 
 # Bind client socket to a random port
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+client.bind((SERVER_IP,random.randint(8000,9000)))
 
 
 name = input("Nickname: ")
