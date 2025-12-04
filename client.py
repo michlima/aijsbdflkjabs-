@@ -2,32 +2,38 @@ import random
 import socket
 import threading
 
+# Replace this with your actual LAN IP or use "" to let OS choose
+
+SERVER_IP = "172.17.215.200"  # <-- replace with your server LAN IP
+SERVER_PORT = 9999
+
+# Bind client socket to a random port
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-client.bind(("0.0.0.0", random.randint(8000, 9000)))
-
-name = input ("Nickname: ")
 
 
-def recieve(): 
+name = input("Nickname: ")
+
+def receive(): 
+    print("Starting receiver")
     while True:
         try:
             message, _ = client.recvfrom(1024)
             print(message.decode())
-        except: 
-            pass
+        except Exception as e: 
+            print("Error receiving:", e)
 
-t = threading.Thread(target=recieve)
+# Start receiver thread
+t = threading.Thread(target=receive, daemon=True)
 t.start()
 
-client.sendto(f"SIGNUP_TAG:{name}".encode(), ("0.0.0.0", 9999))
+# Send signup message
+client.sendto(f"SIGNUP_TAG:{name}".encode(), (SERVER_IP, SERVER_PORT))
 
-
+# Main loop to send messages
 while True:
     message = input("")
     if message == "!q":
-        exit()
+        print("Exiting...")
+        break
     else:
-        client.sendto(f"{name}: {message}" .encode(), ("0.0.0.0", 9999))
-
-        
-    
+        client.sendto(f"{name}: {message}".encode(), (SERVER_IP, SERVER_PORT))
