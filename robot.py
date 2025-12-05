@@ -1,35 +1,57 @@
 import random
 import socket
 import threading
-from chatterbot import ChatBot
-from chatterbot.trainers import ChatterBotCorpusTrainer
+from openai import OpenAI
 
-#Chatbot
-chatbot = ChatBot('Ron Obvious')
-trainer = ChatterBotCorpusTrainer(chatbot)
-trainer.train("./chatterbot-corpus-master/chatterbot_corpus/data/english")
+clientAPI = OpenAI(api_key="key_here")
 
-# Get a response to an input statement
-chatbot.get_response("Hello, how are you today?")
-SERVER_IP = "172.17.215.200"  # <-- replace with your server LAN IP
+
+def chatAPI(chat):
+    print(chat)
+    print("Getting chat from GPT")
+    response = clientAPI.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": (
+                    "Talk to your friends based on conversation. "
+                    "Don't mention your name, just the response. "
+                    f"Participate in the conversation with one sentence from 1 to 10 words: {chat}"
+                )
+            }
+        ]
+    )
+    print(response.choices[0].message.content)
+    return response.choices[0].message.content
+
+
+# Replace this with your actual LAN IP or use "" to let OS choose
+my_ip = input("Enter server ip you want to connect to: ")
+SERVER_IP = my_ip  # <-- replace with your server LAN IP
 SERVER_PORT = 9999
 
 # Bind client socket to a random port
 client = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 client.bind(("",random.randint(8000,9000)))
-
-
-
+startRobot = True
+conversation = []
 
 def receive(): 
-    print("Starting receiver")
+    justResponded = False
     while True:
         try:
-            print("hi")
             message, _ = client.recvfrom(1024)
-            print(message.decode())
-            bot_response = chatbot.get_response(f"{message}")
-            client.sendto(f"Chatboy: {bot_response}".encode(), (SERVER_IP, SERVER_PORT))
+            conversation.append(message.decode())
+            if "SINGUP_TAG" in message.decode():
+                pass
+            elif justResponded:
+                justResponded = False
+                pass
+            else:
+                response = chatAPI(" ".join(conversation))
+                client.sendto(f" {response}".encode(), (SERVER_IP, SERVER_PORT))
+                justResponded = True
         except Exception as e: 
             print("Error receiving:", e)
 
@@ -37,6 +59,13 @@ def receive():
 t = threading.Thread(target=receive, daemon=True)
 t.start()
 
+# Main loop to send messages
 while True:
-    pass
-
+    if startRobot:
+        message = input("")
+        if message == "!q":
+            print("Exiting...")
+            break
+        else:
+            client.sendto(f"Robot: {message}".encode(), (SERVER_IP, SERVER_PORT))
+        startRobot = False

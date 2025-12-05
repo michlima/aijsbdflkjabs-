@@ -23,6 +23,7 @@ def receive():
 
 
 def broadcast():
+    print("spinning server")
     while True:
         while not messages.empty():
             message, addr = messages.get ()
@@ -45,12 +46,4 @@ t2 = threading.Thread(target=broadcast)
 t1.start()
 t2.start()
 
-
-# chatBot
-
-# while True:
-#     message = input("Enter message:")
-
-#     respose = chatbot.get_response(f"{message}")
-#     print(respose)
 

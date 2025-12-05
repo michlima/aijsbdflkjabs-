@@ -1,10 +1,12 @@
 import random
 import socket
 import threading
+import requests
 
 # Replace this with your actual LAN IP or use "" to let OS choose
 
-SERVER_IP = "172.17.215.200"  # <-- replace with your server LAN IP
+my_ip = input("Enter server ip you want to connect to: ")
+SERVER_IP = my_ip  # <-- replace with your server LAN IP
 SERVER_PORT = 9999
 
 # Bind client socket to a random port
