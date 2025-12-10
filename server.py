@@ -26,10 +26,9 @@ def broadcast():
     print("spinning server")
     while True:
         while not messages.empty():
-            message, addr = messages.get ()
-            print (message. decode())
+            message, addr = messages.get()
             if addr not in clients:
-                clients. append (addr)
+                clients.append (addr)
             for client in clients:
                 try:
                     if message.decode().startswith("SIGNUP_TAG:"):
@@ -38,7 +37,7 @@ def broadcast():
                     else:
                         server.sendto(message, client)
                 except:
-                    clients.remove
+                    clients.remove(client)
 
 t1 = threading.Thread(target=receive)
 t2 = threading.Thread(target=broadcast)

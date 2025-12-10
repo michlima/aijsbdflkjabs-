@@ -17,7 +17,7 @@ def chatAPI(chat):
                 "content": (
                     "Talk to your friends based on conversation. "
                     "Don't mention your name, just the response. "
-                    f"Participate in the conversation with one sentence from 1 to 10 words: {chat}"
+                    f"Participate in the conversation with max 50 words: {chat}"
                 )
             }
         ]
@@ -43,15 +43,11 @@ def receive():
         try:
             message, _ = client.recvfrom(1024)
             conversation.append(message.decode())
-            if "SINGUP_TAG" in message.decode():
-                pass
-            elif justResponded:
-                justResponded = False
-                pass
-            else:
+            if("/ai" in message.decode()):
+                chatAPI(message.decode())
                 response = chatAPI(" ".join(conversation))
-                client.sendto(f" {response}".encode(), (SERVER_IP, SERVER_PORT))
-                justResponded = True
+                client.sendto(f"{response}".encode(), (SERVER_IP, SERVER_PORT))
+                
         except Exception as e: 
             print("Error receiving:", e)
 
@@ -67,5 +63,5 @@ while True:
             print("Exiting...")
             break
         else:
-            client.sendto(f"Robot: {message}".encode(), (SERVER_IP, SERVER_PORT))
+            client.sendto("AI JOINED SERVER".encode(), (SERVER_IP, SERVER_PORT))
         startRobot = False

@@ -1,7 +1,12 @@
 import random
 import socket
 import threading
-import requests
+import sys
+import select
+
+def flush_input():
+    while select.select([sys.stdin], [], [], 0)[0]:
+        sys.stdin.read(1)
 
 # Replace this with your actual LAN IP or use "" to let OS choose
 
@@ -17,11 +22,14 @@ client.bind(("",random.randint(8000,9000)))
 name = input("Nickname: ")
 
 def receive(): 
-    print("Starting receiver")
     while True:
         try:
             message, _ = client.recvfrom(1024)
-            print(message.decode())
+            print("", end="\r")
+            print(f"{message.decode()} \n{name}: ", flush=True)
+            sys.stdout.write("\033[1A")  # Move cursor up 1 line
+            sys.stdout.write(f"\033[{len(name) + 1}C")
+            sys.stdout.flush()
         except Exception as e: 
             print("Error receiving:", e)
 
@@ -34,9 +42,14 @@ client.sendto(f"SIGNUP_TAG:{name}".encode(), (SERVER_IP, SERVER_PORT))
 
 # Main loop to send messages
 while True:
-    message = input("")
+    flush_input()
+    message = input(f"{name}: ")
+    flush_input()
     if message == "!q":
         print("Exiting...")
+        print(f"",end="\r")
+        client.sendto(f"{name} left the chat!".encode(), (SERVER_IP, SERVER_PORT))
+        print("exiting chat...")
         break
     else:
         client.sendto(f"{name}: {message}".encode(), (SERVER_IP, SERVER_PORT))
