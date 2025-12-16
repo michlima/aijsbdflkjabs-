@@ -3,7 +3,8 @@ import socket
 import threading
 import sys
 import select
-from login import login
+import join
+
 
 def flush_input():
     while select.select([sys.stdin], [], [], 0)[0]:
@@ -12,7 +13,7 @@ def flush_input():
 # Replace this with your actual LAN IP or use "" to let OS choose
 
 my_ip = input("Enter server ip you want to connect to: ")
-SERVER_IP = my_ip  # <-- replace with your server LAN IP
+server_ip = my_ip  # <-- replace with your server LAN IP
 SERVER_PORT = 9999
 
 # Bind client socket to a random port
@@ -39,7 +40,7 @@ t = threading.Thread(target=receive, daemon=True)
 t.start()
 
 # Send signup message
-client.sendto(f"SIGNUP_TAG:{name}".encode(), (SERVER_IP, SERVER_PORT))
+client.sendto(f"SIGNUP_TAG:{name}".encode(), (server_ip, SERVER_PORT))
 
 # Main loop to send messages
 while True:
@@ -49,8 +50,20 @@ while True:
     if message == "!q":
         print("Exiting...")
         print(f"",end="\r")
-        client.sendto(f"{name} left the chat!".encode(), (SERVER_IP, SERVER_PORT))
+        client.sendto(f"{name} left the chat!".encode(), (server_ip, SERVER_PORT))
         print("exiting chat...")
         break
+    if "/ping" in message:
+        try:
+            ip = message.split(" ")[1]
+            join.ping(ip)
+        except Exception as e:
+            print(e)
+            print("command should be:\n/ping-<place pinging>")
+    if "/join" in message:
+        newIp =message.split(" ")[1]
+        server_ip = newIp
+        print(f"joining server {newIp}")
+        client.sendto(f"{name} JOINED THE SERVER".encode(), (server_ip, SERVER_PORT))
     else:
-        client.sendto(f"{name}: {message}".encode(), (SERVER_IP, SERVER_PORT))
+        client.sendto(f"{name}: {message}".encode(), (server_ip, SERVER_PORT))
